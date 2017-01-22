@@ -1,17 +1,48 @@
-from netaddr import IPNetwork, IPAddress
+#!python
+
+import sys
+from netaddr import IPNetwork, IPAddress, AddrFormatError
 
 def enumerated_ip_range(CIDR_ip_range, exclusion_list):
-    ipNet = IPNetwork(CIDR_ip_range)
-    ipList = list(ipNet)
-    for addr in exclusion_list:
-        if ipList.__contains__(IPAddress(addr)):
-            ipList.remove(IPAddress(addr))
-    return ipList
-    
+    try:
+        #Works well except for checking the type of elements in the exclusion list
+        #That will be caught by the AddrFormatError block if necessary, though
+        if type(CIDR_ip_range) != str:
+            print "The CIDR_ip_range must be a string"
+            return []
+        elif type(exclusion_list) != list:
+            print "The exclusion_list must be a list of strings"
+            return []      
+        
+        #Enumerate the list of IP Addresses and then remove the ones that shouldn't be there
+        ipNet = IPNetwork(CIDR_ip_range)
+        ipList = list(ipNet)
+        for addr in exclusion_list:
+            if IPAddress(addr) in ipList:
+                ipList.remove(IPAddress(addr))
+        
+        #Return the list
+        return ipList
+    except AddrFormatError:
+        print "Invalid IP Address listed in exclusion_list"
+        return []
+
+def printMainUsage():
+    print "Usage: IP_Range.py [-h] [--help] IP_Range Excluded_IP_1 Excluded_IP_2 ..."
+
 def main():
-    ip_range = enumerated_ip_range('192.168.0.0/24', ['192.168.0.23', '192.168.0.6'])
+    if (len(sys.argv) == 2 and (sys.argv[1] == '-h' or sys.argv[1] == '--help')) or len(sys.argv) == 1:
+        printMainUsage()
+        return #exit(0)
+    
+    CIDR_ip_range = sys.argv[1]
+    excluded_ips = sys.argv[2:]        
+    
+    ip_range = enumerated_ip_range(CIDR_ip_range, excluded_ips)
     for ipAddr in ip_range:
         print ipAddr
+    
+    return #exit(0)
     
 if __name__ == '__main__':
     main()
