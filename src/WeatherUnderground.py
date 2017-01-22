@@ -21,17 +21,21 @@ for tideEvent in parsed_json['tide']['tideSummary']:
     eventType = tideEvent['data']['type']
     #All units are in ft, but strip those off because we don't need them
     height = 0 if tideEvent['data']['height'] == '' else float(tideEvent['data']['height'].split()[0])
-    time = tideEvent['date']['pretty']
+    prettyTime = tideEvent['date']['pretty']
+    #Also include a version of time in terms of number of minutes since midnight
+    timeInMinutes = 60 * int(tideEvent['date']['hour']) + int(tideEvent['date']['min'])
     if eventType in binnedData:
-        binnedData[eventType].append((height, time))
+        binnedData[eventType].append((height, prettyTime, timeInMinutes))
     else:
-        binnedData[eventType] = [(height, time)]
+        binnedData[eventType] = [(height, prettyTime, timeInMinutes)]
 
 #Start listing things off
+#The tide site is very easy
 tideSite = parsed_json['tide']['tideInfo'][0]['tideSite']
-print "The tide site is %s" % (tideSite)
+print "The tide site is %s\n" % (tideSite)
 
 
+#Calculate some basic statistics about the tide height data
 #Maximum and minimum a list of tuples inspired by
 #http://stackoverflow.com/questions/13145368/find-the-maximum-value-in-a-list-of-tuples-in-python
 for keys in binnedData.keys():
@@ -49,7 +53,7 @@ for keys in binnedData.keys():
     avg = 0.0
     listLen = len(binnedData[keys])
     for events in binnedData[keys]:
-        avg += float(events[0])/float(listLen)
+        avg += events[0]/listLen
     print "The average tide height was %0.3f" % (avg)
     
     #Median tide height
@@ -58,5 +62,20 @@ for keys in binnedData.keys():
         median = sortedList[listLen//2][0]
     else:
         median = (sortedList[listLen//2 - 1][0] + sortedList[listLen//2][0])/2
-    print "The median tide height was %0.3f\n" % (median)
-
+    print "The median tide height was %0.3f" % (median)
+    
+    #Median times of sunrise, sunset, moonrise, and moonset events
+    if keys == 'Sunrise' or keys == 'Sunset' or keys == 'Moonrise' or keys == 'Moonset':
+        sortedList = sorted(binnedData[keys], key=lambda item:item[2])
+        if listLen % 2 == 1:
+            median = sortedList[listLen//2][2]
+        else:
+            median = (sortedList[listLen//2 - 1][2] + sortedList[listLen//2][2])/2
+        timeStr = "The median time of %s was " % (keys.lower())
+        if median//60 < 12:
+            timeStr += "%d:%d AM\n\n" % (median//60, median % 60)
+        else:
+            timeStr += "%d:%d PM\n\n" % (median//60 - 12, median % 60)
+        print timeStr
+    else:
+        print "\n"
