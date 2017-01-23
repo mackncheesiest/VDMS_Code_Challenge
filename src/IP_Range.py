@@ -33,7 +33,7 @@ def printMainUsage():
 def main():
     if (len(sys.argv) == 2 and (sys.argv[1] == '-h' or sys.argv[1] == '--help')) or len(sys.argv) == 1:
         printMainUsage()
-        return #exit(0)
+        return
     
     CIDR_ip_range = sys.argv[1]
     excluded_ips = sys.argv[2:]        
@@ -42,7 +42,7 @@ def main():
     for ipAddr in ip_range:
         print ipAddr
     
-    return #exit(0)
+    return
     
 if __name__ == '__main__':
     main()
