@@ -147,9 +147,12 @@ def main():
         return
     
     parsed_json = getJSON_Response(feature=feature)
+    if parsed_json == {}:
+        print "Error occurred when fetching JSON, exiting..."
+        return
+    #Therefore, if we reach this point, some kind of data was returned from getJSON_Response
     binnedData = binData(parsed_json, feature=feature)
     printBinnedResults(binnedData, parsed_json, feature=feature)
-
 
 if __name__ == '__main__':
     main()
