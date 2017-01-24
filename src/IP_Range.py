@@ -24,7 +24,7 @@ def enumerated_ip_range(CIDR_ip_range, exclusion_list):
         #Return the list
         return ipList
     except AddrFormatError:
-        print "Invalid IP Address listed in exclusion_list"
+        print "Invalid IP Range or invalid IP Address listed in exclusion_list"
         return []
 
 def printMainUsage():
@@ -36,6 +36,7 @@ def main():
         return
     
     CIDR_ip_range = sys.argv[1]
+    #Works even with no excluded addresses -- becomes empty list
     excluded_ips = sys.argv[2:]        
     
     ip_range = enumerated_ip_range(CIDR_ip_range, excluded_ips)
