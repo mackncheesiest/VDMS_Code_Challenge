@@ -5,10 +5,22 @@ import json
 import sys
 
 from operator import itemgetter
+from pprint import pprint
+
+#Define this outside all function definitions to use it in all standalone functions for input validation
+validFeatures = ['alerts', 'almanac', 'astronomy', 'conditions', 'currenthurricane', 'forecast', 
+                     'forecast10day', 'geolookup', 'history', 'hourly', 'hourly10day', 'planner', 
+                     'rawtide', 'tide', 'webcams', 'yesterday']
 
 #Structured pretty heavily off of the sample code on WUnderground
 #https://www.wunderground.com/weather/api/d/docs?d=resources/code-samples
 def getJSON_Response(apiKey='45cf8510dd6bc8a1', state='CA', city='Santa_Monica', feature='tide'):
+    if feature not in validFeatures:
+        print "Invalid feature given\n\nValid features:"
+        pprint(validFeatures)
+        return {}
+    
+    
     myURL = 'http://api.wunderground.com/api/%s/geolookup/%s/q/%s/%s.json' % (apiKey, feature, state, city)    
     f = urllib2.urlopen(myURL)
     json_string = f.read()
@@ -17,12 +29,17 @@ def getJSON_Response(apiKey='45cf8510dd6bc8a1', state='CA', city='Santa_Monica',
     return parsed_json
 
 def binData(parsed_json, feature='tide'):
+    if feature not in validFeatures:
+        print "Invalid feature given\n\nValid features:"
+        pprint(validFeatures)
+        return {}
+    
     binnedData = {}
     #Bin the data according to tide event and extract the relevant height and time information
     if feature=='tide':
         for tideEvent in parsed_json['tide']['tideSummary']:
             eventType = tideEvent['data']['type']
-            #All units are in ft, but strip those off because we don't need them
+            #All units are in ft, but strip those off because we don't need them (split by space and take first)
             height = 0 if tideEvent['data']['height'] == '' else float(tideEvent['data']['height'].split()[0])
             prettyTime = tideEvent['date']['pretty']
             #Also include a version of time in terms of number of minutes since midnight
@@ -42,6 +59,11 @@ def binData(parsed_json, feature='tide'):
     return binnedData
 
 def printBinnedResults(binnedData, parsed_json, feature='tide'):
+    if feature not in validFeatures:
+        print "Invalid feature given\n\nValid features:"
+        pprint(validFeatures)
+        return
+    
     if feature=='tide':
         tideSite = parsed_json['tide']['tideInfo'][0]['tideSite']
         print "The tide site is %s\n" % (tideSite)
@@ -103,9 +125,8 @@ def printBinnedResults(binnedData, parsed_json, feature='tide'):
 
 def printMainUsage():
     print "Usage: WeatherUnderground.py [-h] [--help] feature\n"
-    print ("Valid features:\nalerts, almanac, astronomy, conditions, currenthurricane, forecast,\n"
-           "forecast10day, geolookup, history, hourly, hourly10day, planner, rawtide, tide,\n"
-           "webcams, yesterday")
+    print "Valid features:"
+    pprint(validFeatures)
     return
 
 def main():
@@ -113,13 +134,8 @@ def main():
         printMainUsage()
         return
     
-    validFeatures = ['alerts', 'almanac', 'astronomy', 'conditions', 'currenthurricane', 'forecast', 
-                     'forecast10day', 'geolookup', 'history', 'hourly', 'hourly10day', 'planner', 
-                     'rawtide', 'tide', 'webcams', 'yesterday']
-    
     feature = sys.argv[1]
     
-    #It seems like some kind of
     if feature not in validFeatures:
         print "Invalid feature given\n"
         printMainUsage()
