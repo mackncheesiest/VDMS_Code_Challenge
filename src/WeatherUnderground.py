@@ -20,13 +20,18 @@ def getJSON_Response(apiKey='45cf8510dd6bc8a1', state='CA', city='Santa_Monica',
         pprint(validFeatures)
         return {}
     
-    
-    myURL = 'http://api.wunderground.com/api/%s/geolookup/%s/q/%s/%s.json' % (apiKey, feature, state, city)    
-    f = urllib2.urlopen(myURL)
-    json_string = f.read()
-    parsed_json = json.loads(json_string)
-    f.close()
-    return parsed_json
+    try:
+        myURL = 'http://api.wunderground.com/api/%s/geolookup/%s/q/%s/%s.json' % (apiKey, feature, state, city)    
+        f = urllib2.urlopen(myURL)
+        json_string = f.read()
+        parsed_json = json.loads(json_string)
+        f.close()
+        return parsed_json
+    #Called if urlopen fails to connect (i.e. the API is down or otherwise unavailable)
+    except IOError:
+        print "WeatherUnderground API is currently unavailable"
+        return {}
+        
 
 def binData(parsed_json, feature='tide'):
     if feature not in validFeatures:
