@@ -30,7 +30,7 @@ def enumerated_ip_range(CIDR_ip_range, exclusion_list):
 def printMainUsage():
     print "Usage: IP_Range.py [-h] [--help] IP_Range Excluded_IP_1 Excluded_IP_2 ..."
 
-def main(argVect):
+def main(argVect=['IP_Range.py']):
     if (len(argVect) == 2 and (argVect[1] == '-h' or argVect[1] == '--help')) or len(argVect) <= 1:
         printMainUsage()
         return
