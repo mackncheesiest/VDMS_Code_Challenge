@@ -30,14 +30,14 @@ def enumerated_ip_range(CIDR_ip_range, exclusion_list):
 def printMainUsage():
     print "Usage: IP_Range.py [-h] [--help] IP_Range Excluded_IP_1 Excluded_IP_2 ..."
 
-def main():
-    if (len(sys.argv) == 2 and (sys.argv[1] == '-h' or sys.argv[1] == '--help')) or len(sys.argv) == 1:
+def main(argVect):
+    if (len(argVect) == 2 and (argVect[1] == '-h' or argVect[1] == '--help')) or len(argVect) <= 1:
         printMainUsage()
         return
     
-    CIDR_ip_range = sys.argv[1]
+    CIDR_ip_range = argVect[1]
     #Works even with no excluded addresses -- becomes empty list
-    excluded_ips = sys.argv[2:]        
+    excluded_ips = argVect[2:]        
     
     ip_range = enumerated_ip_range(CIDR_ip_range, excluded_ips)
     for ipAddr in ip_range:
@@ -46,4 +46,4 @@ def main():
     return
     
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
