@@ -39,20 +39,30 @@ def binData(parsed_json, feature='tide'):
         pprint(validFeatures)
         return {}
     
+    #Essentially, bin the data into a dictionary of lists
     binnedData = {}
     #Bin the data according to tide event and extract the relevant height and time information
     if feature=='tide':
         for tideEvent in parsed_json['tide']['tideSummary']:
+            #The type of event (high tide, low tide, moonrise, moonset, sunrise, sunset)
             eventType = tideEvent['data']['type']
-            #All units are in ft, but strip those off because we don't need them (split by space and take first)
+            
+            #All units are in ft, but strip those off because we don't need them (split by spaces and take first)
             height = 0 if tideEvent['data']['height'] == '' else float(tideEvent['data']['height'].split()[0])
+            
+            #Keep the pretty time to use in printing the time
             prettyTime = tideEvent['date']['pretty']
+            
             #Also include a version of time in terms of number of minutes since midnight
+            #Useful for calculating the median time of (sun/moon)(rise/set)
             timeInMinutes = 60 * int(tideEvent['date']['hour']) + int(tideEvent['date']['min'])
+            
+            #If a key already exists in the dictionary, append to that list, otherwise, make the new list
             if eventType in binnedData:
                 binnedData[eventType].append((height, prettyTime, timeInMinutes))
             else:
                 binnedData[eventType] = [(height, prettyTime, timeInMinutes)]
+    #Bin the data by just adding it all to one list with a corresponding key of 'temps'
     elif feature=='hourly':
         for hourlyEvent in parsed_json['hourly_forecast']:
             temp = hourlyEvent['temp']['english']
@@ -70,6 +80,7 @@ def printBinnedResults(binnedData, parsed_json, feature='tide'):
         return
     
     if feature=='tide':
+        #Extract the tide site
         tideSite = parsed_json['tide']['tideInfo'][0]['tideSite']
         print "The tide site is %s\n" % (tideSite)
         
@@ -91,25 +102,31 @@ def printBinnedResults(binnedData, parsed_json, feature='tide'):
             avg = 0.0
             listLen = len(binnedData[keys])
             for events in binnedData[keys]:
-                avg += events[0]/listLen
-            print "The average tide height was %0.3f ft" % (avg)
+                avg += events[0]
+            print "The average tide height was %0.3f ft" % (avg/listLen)
             
             #Median tide height
             sortedList = sorted(binnedData[keys], key=lambda item:item[0])
+            #If the list has odd length, the median is the middle index
             if listLen % 2 == 1:
                 median = sortedList[listLen//2][0]
+            #Otherwise, it's the average of the two middle indices
             else:
                 median = (sortedList[listLen//2 - 1][0] + sortedList[listLen//2][0])/2
             print "The median tide height was %0.3f ft" % (median)
             
             #Median times of sunrise, sunset, moonrise, and moonset events
             if keys == 'Sunrise' or keys == 'Sunset' or keys == 'Moonrise' or keys == 'Moonset':
+                #Sort the data according to the "time in minutes" from binData
                 sortedList = sorted(binnedData[keys], key=lambda item:item[2])
+                #Use the same median logic as above
                 if listLen % 2 == 1:
                     median = sortedList[listLen//2][2]
                 else:
                     median = (sortedList[listLen//2 - 1][2] + sortedList[listLen//2][2])/2
+                
                 timeStr = "The median time of %s was " % (keys.lower())
+                #Check if we're printing AM or PM
                 if median//60 < 12:
                     timeStr += "%d:%d AM\n\n" % (median//60, median % 60)
                 else:
@@ -117,13 +134,14 @@ def printBinnedResults(binnedData, parsed_json, feature='tide'):
                 print timeStr
             else:
                 print "\n"
+    
     elif feature=='hourly':
         #Print the average temperature
         avg = 0.0
         listLen = len(binnedData['temps'])
         for temp in binnedData['temps']:
-            avg += float(temp)/listLen
-        print "The average temperature was %0.3f F" % (avg)
+            avg += float(temp)
+        print "The average temperature was %0.3f F" % (avg/listLen)
     else:
         print "Data for %s was successfully obtained" % (feature)
     return
@@ -147,6 +165,7 @@ def main(argVector=['WeatherUnderground.py']):
         return
     
     parsed_json = getJSON_Response(feature=feature)
+    #If an error occurs, parsed_json should return an empty dict
     if parsed_json == {}:
         print "Error occurred when fetching JSON, exiting..."
         return
