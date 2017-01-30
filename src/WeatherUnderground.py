@@ -134,12 +134,12 @@ def printMainUsage():
     pprint(validFeatures)
     return
 
-def main():
-    if len(sys.argv) < 2 or sys.argv[1] == '-h' or sys.argv[1] == '--help':
+def main(argVector=['WeatherUnderground.py']):
+    if len(argVector) < 2 or argVector[1] == '-h' or argVector[1] == '--help':
         printMainUsage()
         return
     
-    feature = sys.argv[1]
+    feature = argVector[1]
     
     if feature not in validFeatures:
         print "Invalid feature given\n"
@@ -155,5 +155,5 @@ def main():
     printBinnedResults(binnedData, parsed_json, feature=feature)
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
     
